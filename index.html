@@ -120,7 +120,7 @@
 </style>
 </head>
 <body class="text-ink bg-paper">
-  
+
 <!-- ===================== HEADER ===================== -->
 <header class="sticky top-0 z-40 bg-ink paper-texture text-paper">
   <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -194,7 +194,6 @@
   <p class="font-display text-mustard text-xl font-bold mb-1">Zomiko</p>
   <p>Apna local food, seedha WhatsApp par 🍽️</p>
 </footer>
-
 <!-- ===================== STICKY CART BAR ===================== -->
 <button id="stickyCartBar" class="hidden fixed bottom-4 left-4 right-4 z-40 max-w-3xl mx-auto bg-leaf text-white font-display font-bold text-base rounded-2xl py-3.5 px-5 shadow-pop flex items-center justify-between active:scale-[0.98] transition-transform">
   <span>🛒 View Cart</span>
@@ -202,12 +201,7 @@
 </button>
 
 <!-- ===================== CART DRAWER ===================== -->
-    <p id="minOrderNote" class="hidden text-vermillion text-xs font-medium text-center"></p>
-<div class="text-sm text-ink/70 space-y-1">
-  <div class="flex justify-between"><span>Item Total</span><span id="cartItemTotal">₹0</span></div>
-  <div class="flex justify-between"><span>Delivery Charge</span><span id="deliveryChargeLabel">₹0</span></div>
-</div>
-  <div id="cartOverlay" class="overlay hidden fixed inset-0 bg-black/50 z-50 opacity-0"></div>
+<div id="cartOverlay" class="overlay hidden fixed inset-0 bg-black/50 z-50 opacity-0"></div>
 <div id="cartDrawer" class="drawer closed fixed bottom-0 left-0 right-0 z-50 bg-cream rounded-t-3xl max-w-3xl mx-auto max-h-[85vh] flex flex-col">
   <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink/10">
     <h3 class="font-display font-bold text-xl">Tumhara Cart 🛒</h3>
@@ -219,8 +213,13 @@
     <p class="font-medium">Cart mein pehle kuch add karo 👀</p>
   </div>
   <div id="cartFooter" class="border-t border-ink/10 px-5 py-4 space-y-3">
-    <div class="flex items-center justify-between text-sm text-ink/70">
-      <button id="clearCartBtn" class="font-medium underline">Cart clear karo</button>
+    <p id="minOrderNote" class="hidden text-vermillion text-xs font-medium text-center"></p>
+    <div class="text-sm text-ink/70 space-y-1">
+      <div class="flex justify-between"><span>Item Total</span><span id="cartItemTotal">₹0</span></div>
+      <div class="flex justify-between"><span>Delivery Charge</span><span id="deliveryChargeLabel">₹0</span></div>
+    </div>
+    <div class="flex items-center justify-between border-t border-ink/10 pt-2">
+      <button id="clearCartBtn" class="font-medium underline text-sm">Cart clear karo</button>
       <span class="font-display font-bold text-lg text-ink">Total: <span id="cartTotal">₹0</span></span>
     </div>
     <button id="goToCheckoutBtn" class="w-full bg-ink text-mustard font-display font-bold text-lg py-3.5 rounded-2xl active:scale-[0.98] transition-transform">
@@ -282,17 +281,17 @@
 ========================================================= */
 const BRAND_NAME = "Zomiko";
 const WHATSAPP_NUMBER = "919559059929"; // country code + number, no + or spaces
-  const MIN_ORDER_QTY = 5;      // minimum total items required to checkout
-const DELIVERY_CHARGE = 49;   // flat delivery charge, added on top of item total
+const MIN_ORDER_QTY = 5;      // minimum total items required to checkout
+const DELIVERY_CHARGE = 59;   // flat delivery charge, added on top of item total
 
 /* =========================================================
    MENU DATA — edit items / prices / categories here
 ========================================================= */
 const MENU = [
   { key:'tea', name:'Tea', emoji:'☕', items:[
-    { name:'Chai Jumbo', price:20 },
-    { name:'Chai Full', price:10 },
-    { name:'Chai Cutting', price:5 },
+    { name:'Zambo', price:40 },
+    { name:'Full', price:10 },
+    { name:'Half', price:5 },
   ]},
   { key:'hotcoffee', name:'Hot Coffee', emoji:'☕', items:[
     { name:'Hot Coffee', price:20 },
@@ -556,8 +555,7 @@ POPULAR_KEYS.forEach(key => {
   });
   popularRow.appendChild(card);
 });
-
-/* =========================================================
+  /* =========================================================
    RENDER: MENU SECTIONS
 ========================================================= */
 const menuContainer = document.getElementById('menuContainer');
@@ -684,7 +682,8 @@ CUISINES.forEach((cuisine, ci) => {
 
   menuContainer.appendChild(cuisineSection);
 });
-  /* =========================================================
+
+/* =========================================================
    SEARCH
 ========================================================= */
 const searchToggleBtn = document.getElementById('searchToggleBtn');
@@ -723,8 +722,7 @@ searchClearBtn.addEventListener('click', () => {
   searchInput.dispatchEvent(new Event('input'));
   searchInput.focus();
 });
-
-/* =========================================================
+  /* =========================================================
    CART DRAWER
 ========================================================= */
 const cartOverlay = document.getElementById('cartOverlay');
@@ -735,6 +733,9 @@ const cartItemsEl = document.getElementById('cartItems');
 const cartEmptyMsg = document.getElementById('cartEmptyMsg');
 const cartFooter = document.getElementById('cartFooter');
 const cartTotalEl = document.getElementById('cartTotal');
+const cartItemTotalEl = document.getElementById('cartItemTotal');
+const deliveryChargeLabel = document.getElementById('deliveryChargeLabel');
+const minOrderNote = document.getElementById('minOrderNote');
 const cartBadge = document.getElementById('cartBadge');
 const stickyCartBar = document.getElementById('stickyCartBar');
 const stickyCartTotal = document.getElementById('stickyCartTotal');
@@ -747,9 +748,9 @@ function cartCount(){
 function cartTotal(){
   return Object.values(CART).reduce((s,i) => s + i.qty * i.price, 0);
 }
-  function grandTotal(){
+function grandTotal(){
   return cartCount() > 0 ? cartTotal() + DELIVERY_CHARGE : 0;
-  }
+}
 
 function openDrawer(drawer, overlay){
   overlay.classList.remove('hidden');
@@ -811,26 +812,27 @@ function renderCart(){
     });
   }
 
-deliveryChargeLabel.textContent = formatMoney(DELIVERY_CHARGE);
-cartItemTotalEl.textContent = formatMoney(cartTotal());
-cartTotalEl.textContent = formatMoney(grandTotal());
+  deliveryChargeLabel.textContent = formatMoney(DELIVERY_CHARGE);
+  cartItemTotalEl.textContent = formatMoney(cartTotal());
+  cartTotalEl.textContent = formatMoney(grandTotal());
 
-const belowMin = cartCount() > 0 && cartCount() < MIN_ORDER_QTY;
-minOrderNote.classList.toggle('hidden', !belowMin);
-minOrderNote.textContent = `Minimum ${MIN_ORDER_QTY} items order karne zaroori hain 😅 (abhi ${cartCount()} hain)`;
-goToCheckoutBtn.disabled = belowMin;
+  const belowMin = cartCount() > 0 && cartCount() < MIN_ORDER_QTY;
+  minOrderNote.classList.toggle('hidden', !belowMin);
+  minOrderNote.textContent = `Minimum ${MIN_ORDER_QTY} items order karne zaroori hain 😅 (abhi ${cartCount()} hain)`;
+  goToCheckoutBtn.disabled = belowMin;
+  goToCheckoutBtn.classList.toggle('opacity-40', belowMin);
+  goToCheckoutBtn.classList.toggle('cursor-not-allowed', belowMin);
 }
 
 function updateCartBadges(){
   const count = cartCount();
-  const total = cartTotal();
   if (count > 0){
     cartBadge.textContent = count;
     cartBadge.classList.remove('hidden');
     cartBadge.classList.add('badge-pop');
     setTimeout(() => cartBadge.classList.remove('badge-pop'), 300);
     stickyCartBar.classList.remove('hidden');
-    stickyCartTotal.textContent = formatMoney(total);
+    stickyCartTotal.textContent = formatMoney(grandTotal());
   } else {
     cartBadge.classList.add('hidden');
     stickyCartBar.classList.add('hidden');
@@ -850,8 +852,8 @@ goToCheckoutBtn.addEventListener('click', () => {
     return;
   }
   if (cartCount() < MIN_ORDER_QTY){
-  showToast(`Minimum ${MIN_ORDER_QTY} items order karne zaroori hain 😅`);
-  return;
+    showToast(`Minimum ${MIN_ORDER_QTY} items order karne zaroori hain 😅`);
+    return;
   }
   closeDrawer(cartDrawer, cartOverlay);
   setTimeout(() => { renderSummary(); openDrawer(checkoutDrawer, checkoutOverlay); }, 260);
@@ -887,7 +889,11 @@ function renderSummary(){
     line.innerHTML = `<span>${entry.name}${sizeLabel} × ${entry.qty}</span><span>₹${entry.price * entry.qty}</span>`;
     summaryItems.appendChild(line);
   });
-  summaryTotal.textContent = formatMoney(cartTotal());
+  const deliveryLine = document.createElement('div');
+  deliveryLine.className = 'flex justify-between';
+  deliveryLine.innerHTML = `<span>Delivery Charge</span><span>₹${DELIVERY_CHARGE}</span>`;
+  summaryItems.appendChild(deliveryLine);
+  summaryTotal.textContent = formatMoney(grandTotal());
 }
 
 function validatePhone(v){
@@ -904,6 +910,7 @@ sendWhatsappBtn.addEventListener('click', () => {
   if (!validatePhone(custPhone.value)){ errPhone.classList.remove('hidden'); valid = false; }
   if (custAddress.value.trim() === ''){ errAddress.classList.remove('hidden'); valid = false; }
   if (Object.keys(CART).length === 0){ showToast('Cart mein pehle kuch add karo 👀'); valid = false; }
+  else if (cartCount() < MIN_ORDER_QTY){ showToast(`Minimum ${MIN_ORDER_QTY} items order karne zaroori hain 😅`); valid = false; }
 
   if (!valid) return;
 
@@ -927,7 +934,7 @@ ${custNote.value.trim() || '-'}
 
 Item Total: ₹${cartTotal()}
 Delivery Charge: ₹${DELIVERY_CHARGE}
-Total: ₹${grandTotal()}
+Total: ₹${grandTotal()}`;
 
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   window.open(url, '_blank');
@@ -957,5 +964,3 @@ updateCartBadges();
 </script>
 </body>
 </html>
-
-    
