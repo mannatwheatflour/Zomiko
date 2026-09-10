@@ -202,7 +202,12 @@
 </button>
 
 <!-- ===================== CART DRAWER ===================== -->
-<div id="cartOverlay" class="overlay hidden fixed inset-0 bg-black/50 z-50 opacity-0"></div>
+    <p id="minOrderNote" class="hidden text-vermillion text-xs font-medium text-center"></p>
+<div class="text-sm text-ink/70 space-y-1">
+  <div class="flex justify-between"><span>Item Total</span><span id="cartItemTotal">₹0</span></div>
+  <div class="flex justify-between"><span>Delivery Charge</span><span id="deliveryChargeLabel">₹0</span></div>
+</div>
+  <div id="cartOverlay" class="overlay hidden fixed inset-0 bg-black/50 z-50 opacity-0"></div>
 <div id="cartDrawer" class="drawer closed fixed bottom-0 left-0 right-0 z-50 bg-cream rounded-t-3xl max-w-3xl mx-auto max-h-[85vh] flex flex-col">
   <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-ink/10">
     <h3 class="font-display font-bold text-xl">Tumhara Cart 🛒</h3>
@@ -277,6 +282,8 @@
 ========================================================= */
 const BRAND_NAME = "Zomiko";
 const WHATSAPP_NUMBER = "919559059929"; // country code + number, no + or spaces
+  const MIN_ORDER_QTY = 5;      // minimum total items required to checkout
+const DELIVERY_CHARGE = 49;   // flat delivery charge, added on top of item total
 
 /* =========================================================
    MENU DATA — edit items / prices / categories here
@@ -740,6 +747,9 @@ function cartCount(){
 function cartTotal(){
   return Object.values(CART).reduce((s,i) => s + i.qty * i.price, 0);
 }
+  function grandTotal(){
+  return cartCount() > 0 ? cartTotal() + DELIVERY_CHARGE : 0;
+  }
 
 function openDrawer(drawer, overlay){
   overlay.classList.remove('hidden');
@@ -801,7 +811,14 @@ function renderCart(){
     });
   }
 
-  cartTotalEl.textContent = formatMoney(cartTotal());
+deliveryChargeLabel.textContent = formatMoney(DELIVERY_CHARGE);
+cartItemTotalEl.textContent = formatMoney(cartTotal());
+cartTotalEl.textContent = formatMoney(grandTotal());
+
+const belowMin = cartCount() > 0 && cartCount() < MIN_ORDER_QTY;
+minOrderNote.classList.toggle('hidden', !belowMin);
+minOrderNote.textContent = `Minimum ${MIN_ORDER_QTY} items order karne zaroori hain 😅 (abhi ${cartCount()} hain)`;
+goToCheckoutBtn.disabled = belowMin;
 }
 
 function updateCartBadges(){
@@ -831,6 +848,10 @@ goToCheckoutBtn.addEventListener('click', () => {
   if (Object.keys(CART).length === 0){
     showToast('Cart mein pehle kuch add karo 👀');
     return;
+  }
+  if (cartCount() < MIN_ORDER_QTY){
+  showToast(`Minimum ${MIN_ORDER_QTY} items order karne zaroori hain 😅`);
+  return;
   }
   closeDrawer(cartDrawer, cartOverlay);
   setTimeout(() => { renderSummary(); openDrawer(checkoutDrawer, checkoutOverlay); }, 260);
@@ -904,7 +925,9 @@ ${lines}
 Special Note:
 ${custNote.value.trim() || '-'}
 
-Total: ₹${cartTotal()}`;
+Item Total: ₹${cartTotal()}
+Delivery Charge: ₹${DELIVERY_CHARGE}
+Total: ₹${grandTotal()}
 
   const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
   window.open(url, '_blank');
